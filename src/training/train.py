@@ -13,12 +13,9 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
-
-SOURCE = os.path.join("data", "processed")
-MODEL_PATH = "models"
-
-N_FOLDS = 5
-MAX_EVALS = 10
+from omegaconf import DictConfig
+import logging
+logging.getLogger('hyperopt.tpe').setLevel(logging.WARNING)
 
 SPACES = {
     "xgboost": {
@@ -35,42 +32,39 @@ SPACES = {
     }
 }
 
-def encode_target_col(file_name: str, target_col: str, model_name: str, logger):
-    """Handle missing values and categorical features"""
-    train_df = pd.read_parquet(os.path.join(SOURCE, f"{file_name}-train.parquet"))
-    test_df = pd.read_parquet(os.path.join(SOURCE, f"{file_name}-test.parquet"))
+def encode_target_col(
+    cfg: DictConfig,
+    logger: logging.Logger
+):
+    """Handle target encoding with Hydra config"""
+    train_df = pd.read_parquet(os.path.join(cfg.data.processed_data_path, f"{cfg.data.file_name}-train.parquet"))
+    test_df = pd.read_parquet(os.path.join(cfg.data.processed_data_path, f"{cfg.data.file_name}-test.parquet"))
     
-    # Identify columns
     categorical_cols = train_df.select_dtypes(include=['object', 'category']).columns
-    numeric_cols = train_df.select_dtypes(include=['int64', 'float64']).columns.drop(target_col, errors='ignore')
+    numeric_cols = train_df.select_dtypes(include=['int64', 'float64']).columns.drop(cfg.data.target_column, errors='ignore')
     
-    # Create preprocessing pipeline
     preprocessor = ColumnTransformer(
         transformers=[
-            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_cols.drop(target_col, errors='ignore')),
+            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_cols.drop(cfg.data.target_column, errors='ignore')),
             ('num', SimpleImputer(strategy='median'), numeric_cols)
         ])
     
     target_encoder = LabelEncoder()
     
-    # Handle missing values in target
-    if train_df[target_col].isna().any():
-        logger.warning(f"Found {train_df[target_col].isna().sum()} missing values in target")
-        train_df = train_df.dropna(subset=[target_col])
+    if train_df[cfg.data.target_column].isna().any():
+        logger.warning(f"Found {train_df[cfg.data.target_column].isna().sum()} missing values in target")
+        train_df = train_df.dropna(subset=[cfg.data.target_column])
     
-    # Fit and transform
-    X_train = preprocessor.fit_transform(train_df.drop(target_col, axis=1))
-    X_test = preprocessor.transform(test_df.drop(target_col, axis=1))
+    X_train = preprocessor.fit_transform(train_df.drop(cfg.data.target_column, axis=1))
+    X_test = preprocessor.transform(test_df.drop(cfg.data.target_column, axis=1))
     
-    # Encode target
-    all_categories = pd.concat([train_df[target_col], test_df[target_col]]).unique()
+    all_categories = pd.concat([train_df[cfg.data.target_column], test_df[cfg.data.target_column]]).unique()
     target_encoder.fit(all_categories)
-    y_train = target_encoder.transform(train_df[target_col])
-    y_test = target_encoder.transform(test_df[target_col])
+    y_train = target_encoder.transform(train_df[cfg.data.target_column])
+    y_test = target_encoder.transform(test_df[cfg.data.target_column])
     
-    # Save preprocessors
-    os.makedirs(os.path.join(MODEL_PATH, model_name), exist_ok=True)
-    with open(os.path.join(MODEL_PATH, model_name, "preprocessors.pkl"), "wb") as f:
+    os.makedirs(os.path.join(cfg.model.model_path, cfg.model.model_name), exist_ok=True)
+    with open(os.path.join(cfg.model.model_path, cfg.model.model_name, "preprocessors.pkl"), "wb") as f:
         pickle.dump({
             'feature_preprocessor': preprocessor,
             'target_encoder': target_encoder
@@ -78,8 +72,8 @@ def encode_target_col(file_name: str, target_col: str, model_name: str, logger):
     
     return X_train, pd.Series(y_train), X_test, pd.Series(y_test)
 
-def objective(model_class, params: Dict[str, Any], X, y, n_folds: int = N_FOLDS) -> Dict[str, Any]:
-    """Modified to return positive loss values"""
+def objective(model_class, params: Dict[str, Any], X, y, n_folds: int = 5) -> Dict[str, Any]:
+    """Objective function for hyperopt"""
     try:
         model = model_class(**params)
         scores = cross_validate(
@@ -105,33 +99,30 @@ def objective(model_class, params: Dict[str, Any], X, y, n_folds: int = N_FOLDS)
             "error": str(e)
         }
 
-def train_model(X, y, model_name: str, model_class, space: Dict, logger) -> None:
-    """Train with missing value handling"""
+def train_model(X, y, cfg: DictConfig, model_class, space: Dict, logger: logging.Logger) -> None:
+    """Train a single model with Hydra config"""
     trials = Trials()
     
     best = fmin(
         fn=partial(objective, model_class, X=X, y=y),
         space=space,
         algo=tpe.suggest,
-        max_evals=MAX_EVALS,
+        max_evals=cfg.model.optimization_params.max_evals,
         trials=trials
     )
     
-    # Convert parameters to proper types
     int_params = ['n_estimators', 'max_depth', 'min_samples_split']
     for param in int_params:
         if param in best:
             best[param] = int(best[param])
     
-    # Train final model
     final_model = model_class(**best)
     final_model.fit(X, y)
     
-    # Save model
-    os.makedirs(os.path.join(MODEL_PATH, model_name), exist_ok=True)
-    pickle.dump(final_model, open(os.path.join(MODEL_PATH, model_name, f"{model_name}_model.pkl"), "wb"))
+    os.makedirs(os.path.join(cfg.model.model_path, cfg.model.model_name), exist_ok=True)
+    pickle.dump(final_model, open(os.path.join(cfg.model.model_path, cfg.model.model_name, f"{cfg.model.model_name}_model.pkl"), "wb"))
 
-def train_all_models(X, y, base_model_name: str, logger) -> None:
-    """Maintain template functionality"""
-    train_model(X, y, f"{base_model_name}_xgboost", XGBClassifier, SPACES["xgboost"], logger)
-    train_model(X, y, f"{base_model_name}_random_forest", RandomForestClassifier, SPACES["random_forest"], logger)
+def train_all_models(X, y, cfg: DictConfig, logger: logging.Logger) -> None:
+    """Train all models with Hydra config"""
+    train_model(X, y, cfg, XGBClassifier, SPACES["xgboost"], logger)
+    train_model(X, y, cfg, RandomForestClassifier, SPACES["random_forest"], logger)
