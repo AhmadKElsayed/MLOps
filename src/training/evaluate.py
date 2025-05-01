@@ -13,23 +13,18 @@ from sklearn.metrics import (
     classification_report
 )
 from time import time
-
-MODEL_PATH = "models"
-REPORT_PATH = "reports"
+from omegaconf import DictConfig
 
 def evaluate(
     X_test: pd.DataFrame,
     y_test: pd.Series,
-    model_name: str,
+    cfg: DictConfig,
     logger: logging.Logger
 ) -> Dict[str, Any]:
-    """
-    Updated to properly handle classification report structure
-    while maintaining template paths and functionality
-    """
+    """Evaluation function using Hydra config"""
     # Load model and encoder
-    model_path = os.path.join(MODEL_PATH, model_name, f"{model_name}_model.pkl")
-    encoder_path = os.path.join(MODEL_PATH, "Titanic_Classifier", "label_encoder.pkl")
+    model_path = os.path.join(cfg.model.model_path, cfg.model.model_name, f"{cfg.model.model_name}_model.pkl")
+    encoder_path = os.path.join(cfg.model.model_path, cfg.model.model_name, "label_encoder.pkl")
     
     with open(model_path, "rb") as f:
         model = pickle.load(f)
@@ -38,15 +33,13 @@ def evaluate(
     
     # Handle target encoding
     if not pd.api.types.is_numeric_dtype(y_test):
-        y_test_encoded = y_test.map(lambda x: encoder.get(x, -1))  # -1 for unknown labels
+        y_test_encoded = y_test.map(lambda x: encoder.get(x, -1))
     else:
         y_test_encoded = y_test
-    
 
     start_time = time()
     y_pred = model.predict(X_test)
     pred_time = time() - start_time
-    
 
     clf_report = classification_report(
         y_test_encoded,
@@ -54,7 +47,6 @@ def evaluate(
         target_names=[str(cls) for cls in encoder.classes_],
         output_dict=True
     )
-    
 
     formatted_report = {}
     for k, v in clf_report.items():
@@ -63,9 +55,8 @@ def evaluate(
         else:
             formatted_report[str(k)] = float(v)
     
-    # Final metrics
     metrics = {
-        "model_name": model_name,
+        "model_name": cfg.model.model_name,
         "accuracy": float(accuracy_score(y_test_encoded, y_pred)),
         "precision": float(precision_score(y_test_encoded, y_pred, average='weighted')),
         "recall": float(recall_score(y_test_encoded, y_pred, average='weighted')),
@@ -74,9 +65,8 @@ def evaluate(
         "classification_report": formatted_report
     }
     
-    # Save report (preserving template path structure)
-    os.makedirs(os.path.join(REPORT_PATH, model_name), exist_ok=True)
-    report_path = os.path.join(REPORT_PATH, model_name, "evaluation_report.json")
+    os.makedirs(os.path.join(cfg.evaluate.reports_path, cfg.model.model_name), exist_ok=True)
+    report_path = os.path.join(cfg.evaluate.reports_path, cfg.model.model_name, "evaluation_report.json")
     
     with open(report_path, "w") as f:
         json.dump(metrics, f, indent=4)

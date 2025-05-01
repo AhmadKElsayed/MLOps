@@ -1,0 +1,65 @@
+pipeline:
+  data:
+    raw_data_path: data/raw
+    processed_data_path: data/processed
+    file_name: titanic
+    id_column: PassengerId
+    target_column: Survived
+    test_size: 0.15
+    random_state: 42
+    columns_to_drop: []
+    drop_missing_threshold: null
+  model:
+    processed_data_path: ${pipeline.data.processed_data_path}
+    file_name: ${pipeline.data.file_name}
+    target_column: ${pipeline.data.target_column}
+    model_name: Titanic_Classifier
+    model_path: models
+    trained_model_path: ${pipeline.model.model_path}/${pipeline.model.model_name}
+    optimization_params:
+      n_folds: 5
+      max_evals: 10
+      scoring: accuracy
+      hyperparameter_search:
+        xgboost:
+          n_estimators:
+            name: n_estimators
+            type: int
+            min: 50
+            max: 200
+            step: 1
+          max_depth:
+            name: max_depth
+            type: int
+            min: 3
+            max: 10
+            step: 1
+          learning_rate:
+            name: learning_rate
+            type: float
+            min: 0.01
+            max: 0.3
+        random_forest:
+          n_estimators:
+            name: n_estimators
+            type: int
+            min: 50
+            max: 200
+            step: 1
+          max_depth:
+            name: max_depth
+            type: int
+            min: 3
+            max: 20
+            step: 1
+          min_samples_split:
+            name: min_samples_split
+            type: int
+            min: 2
+            max: 10
+            step: 1
+  evaluate:
+    model_name: ${pipeline.model.model_name}
+    model_path: ${pipeline.model.model_path}
+    trained_model_path: ${pipeline.model.trained_model_path}
+    reports_path: reports

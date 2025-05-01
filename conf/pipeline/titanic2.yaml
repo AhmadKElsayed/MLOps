@@ -1,0 +1,32 @@
+# conf/pipeline/titanic.yaml
+data:
+  raw_data_path: data/raw
+  processed_data_path: data/processed
+  file_name: titanic
+  id_column: PassengerId
+  target_column: Survived
+  test_size: 0.15
+  random_state: 42
+model:
+  processed_data_path: ${pipeline.data.processed_data_path}
+  file_name: ${pipeline.data.file_name}
+  target_column: ${pipeline.data.target_column}
+  model_name: Titanic_Classifier
+  model_path: models
+  trained_model_path: ${pipeline.model.model_path}/${pipeline.model.model_name}
+  optimization_params:
+    n_folds: 5
+    max_evals: 10
+    scoring: accuracy
+    hyperparameter_search:
+      random_state:
+        name: random_state
+        type: int
+        min: 2
+        max: 80
+        step: 1
+evaluate:
+  model_name: ${pipeline.model.model_name}
+  model_path: ${pipeline.model.model_path}
+  trained_model_path: ${pipeline.model.trained_model_path}
+  reports_path: reports
