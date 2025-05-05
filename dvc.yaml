@@ -7,12 +7,12 @@ stages:
     outs:
     - .\data\processed\titanic-test.parquet
     - .\data\processed\titanic-train.parquet
-    
+
   Train:
     cmd: python ./src/training/train.py
     deps:
-    - .\data\processed\Titanic-test.parquet
-    - .\data\processed\Titanic-train.parquet
+    - .\data\processed\titanic-test.parquet
+    - .\data\processed\titanic-train.parquet
     - .\src\training\train.py
     outs:
     - .\models\Titanic_Classifier\label_encoder.pkl
