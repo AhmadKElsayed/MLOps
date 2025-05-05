@@ -23,11 +23,11 @@ stages:
   Train:
     cmd: python ./src/training/train.py
     deps:
-    - path: .\data\processed\Titanic-test.parquet
+    - path: .\data\processed\titanic-test.parquet
       hash: md5
       md5: e317aed3f7b82c6c5aaaed596b3ec699
       size: 13761
-    - path: .\data\processed\Titanic-train.parquet
+    - path: .\data\processed\titanic-train.parquet
       hash: md5
       md5: 70321861ea314d7ef7d275fabef69b6c
       size: 37081
@@ -43,9 +43,29 @@ stages:
     - path: 
         .\models\Titanic_Classifier_random_forest\Titanic_Classifier_random_forest_model.pkl
       hash: md5
-      md5: cfc518ed69c9bbb28d50e014e2077beb
-      size: 1466788
+      md5: d6cb4d3ed64310086d9b3ad8a4980e0a
+      size: 1366547
     - path: .\models\Titanic_Classifier_xgboost\Titanic_Classifier_xgboost_model.pkl
       hash: md5
-      md5: 8efd3f993a4ddcfc94d198d4132eff78
-      size: 138116
+      md5: b1312f587ffa7546fc42da4f73746382
+      size: 207937
+  Preprocess:
+    cmd: python ./src/training/process_data.py
+    deps:
+    - path: .\data\raw\titanic.csv
+      hash: md5
+      md5: 2309cc5f04782ed9bb6016d9f4e381cf
+      size: 61194
+    - path: .\src\training\process_data.py
+      hash: md5
+      md5: 6bc9d287b7bccadfa88c1077df3773bb
+      size: 2382
+    outs:
+    - path: .\data\processed\titanic-test.parquet
+      hash: md5
+      md5: e317aed3f7b82c6c5aaaed596b3ec699
+      size: 13761
+    - path: .\data\processed\titanic-train.parquet
+      hash: md5
+      md5: 70321861ea314d7ef7d275fabef69b6c
+      size: 37081
