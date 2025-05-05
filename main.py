@@ -1,6 +1,6 @@
 import hydra
 from omegaconf import DictConfig
-from src.logger import ExecutorLogger
+from training.logger import ExecutorLogger
 from src.training.evaluate import evaluate
 from src.training.process_data import read_process_data
 from src.training.train import encode_target_col, train_all_models
