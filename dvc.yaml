@@ -1,5 +1,5 @@
 stages:
-  preprocess:
+  Preprocess:
     cmd: python ./src/training/process_data.py
     deps:
     - .\data\raw\titanic.csv
