@@ -5,5 +5,5 @@ stages:
     - .\data\raw\titanic.csv
     - .\src\training\process_data.py
     outs:
-    - .\data\processed\Titanic-test.parquet
-    - .\data\processed\Titanic-train.parquet
+    - .\data\processed\titanic-test.parquet
+    - .\data\processed\titanic-train.parquet

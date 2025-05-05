@@ -1,0 +1,22 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python ./src/training/process_data.py
+    deps:
+    - path: .\data\raw\titanic.csv
+      hash: md5
+      md5: 2309cc5f04782ed9bb6016d9f4e381cf
+      size: 61194
+    - path: .\src\training\process_data.py
+      hash: md5
+      md5: 6bc9d287b7bccadfa88c1077df3773bb
+      size: 2382
+    outs:
+    - path: .\data\processed\titanic-test.parquet
+      hash: md5
+      md5: e317aed3f7b82c6c5aaaed596b3ec699
+      size: 13761
+    - path: .\data\processed\titanic-train.parquet
+      hash: md5
+      md5: 70321861ea314d7ef7d275fabef69b6c
+      size: 37081
