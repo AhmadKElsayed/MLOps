@@ -1,0 +1,9 @@
+stages:
+  preprocess:
+    cmd: python ./src/training/process_data.py
+    deps:
+    - .\data\raw\titanic.csv
+    - .\src\training\process_data.py
+    outs:
+    - .\data\processed\Titanic-test.parquet
+    - .\data\processed\Titanic-train.parquet
