@@ -1,0 +1,35 @@
+{
+    "model_name": "Titanic_Classifier_xgboost",
+    "accuracy": 0.7985074626865671,
+    "precision": 0.7963689457849095,
+    "recall": 0.7985074626865671,
+    "f1": 0.7962601533839213,
+    "prediction_time_sec": 0.0028798580169677734,
+    "classification_report": {
+        "0": {
+            "precision": 0.8181818181818182,
+            "recall": 0.8674698795180723,
+            "f1-score": 0.8421052631578947,
+            "support": 83.0
+        },
+        "1": {
+            "precision": 0.7608695652173914,
+            "recall": 0.6862745098039216,
+            "f1-score": 0.7216494845360825,
+            "support": 51.0
+        },
+        "accuracy": 0.7985074626865671,
+        "macro avg": {
+            "precision": 0.7895256916996047,
+            "recall": 0.7768721946609969,
+            "f1-score": 0.7818773738469886,
+            "support": 134.0
+        },
+        "weighted avg": {
+            "precision": 0.7963689457849095,
+            "recall": 0.7985074626865671,
+            "f1-score": 0.7962601533839213,
+            "support": 134.0
+        }
+    }
+}
