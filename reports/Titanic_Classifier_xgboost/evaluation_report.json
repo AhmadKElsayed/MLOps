@@ -4,7 +4,7 @@
     "precision": 0.7963689457849095,
     "recall": 0.7985074626865671,
     "f1": 0.7962601533839213,
-    "prediction_time_sec": 0.0027742385864257812,
+    "prediction_time_sec": 0.002899169921875,
     "classification_report": {
         "0": {
             "precision": 0.8181818181818182,
