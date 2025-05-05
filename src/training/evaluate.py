@@ -31,9 +31,9 @@ def evaluate(
     with open(encoder_path, "rb") as f:
         encoder = pickle.load(f)
     
-    # Handle target encoding
+    # Encode y_test if not already numeric
     if not pd.api.types.is_numeric_dtype(y_test):
-        y_test_encoded = y_test.map(lambda x: encoder.get(x, -1))
+        y_test_encoded = encoder.transform(y_test)
     else:
         y_test_encoded = y_test
 

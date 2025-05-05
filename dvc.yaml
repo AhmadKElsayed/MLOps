@@ -7,7 +7,6 @@ stages:
     outs:
     - .\data\processed\titanic-test.parquet
     - .\data\processed\titanic-train.parquet
-    
   Train:
     cmd: python ./src/training/train.py
     deps:
