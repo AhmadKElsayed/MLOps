@@ -36,7 +36,6 @@ SPACES = {
         "random_state": 42,
     }
 }
-
 def encode_target_col(cfg: dict, logger: logging.Logger):
     """Handle target encoding using plain config dict"""
     train_df = pd.read_parquet(os.path.join(cfg['data']['processed_data_path'], f"{cfg['data']['file_name']}-train.parquet"))
@@ -66,12 +65,16 @@ def encode_target_col(cfg: dict, logger: logging.Logger):
     y_train = target_encoder.transform(train_df[cfg['data']['target_column']])
     y_test = target_encoder.transform(test_df[cfg['data']['target_column']])
 
-    os.makedirs(os.path.join(cfg['model']['model_path'], cfg['model']['model_name']), exist_ok=True)
-    with open(os.path.join(cfg['model']['model_path'], cfg['model']['model_name'], "preprocessors.pkl"), "wb") as f:
-        pickle.dump({
-            'feature_preprocessor': preprocessor,
-            'target_encoder': target_encoder
-        }, f)
+    model_dir = os.path.join(cfg['model']['model_path'], cfg['model']['model_name'])
+    os.makedirs(model_dir, exist_ok=True)
+
+    # Save feature preprocessor separately
+    with open(os.path.join(model_dir, "feature_preprocessor.pkl"), "wb") as f:
+        pickle.dump(preprocessor, f)
+
+    # Save target label encoder separately
+    with open(os.path.join(model_dir, "label_encoder.pkl"), "wb") as f:
+        pickle.dump(target_encoder, f)
 
     return X_train, pd.Series(y_train), X_test, pd.Series(y_test)
 
