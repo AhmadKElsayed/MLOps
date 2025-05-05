@@ -18,3 +18,14 @@ stages:
     - .\models\Titanic_Classifier\label_encoder.pkl
     - .\models\Titanic_Classifier_random_forest\Titanic_Classifier_random_forest_model.pkl
     - .\models\Titanic_Classifier_xgboost\Titanic_Classifier_xgboost_model.pkl
+  Evaluate:
+    cmd: python ./src/training/evaluate.py
+    deps:
+    - Mlops/data/processed/Titanic-test.parquet
+  - .\models\Titanic_Classifier\label_encoder.pkl
+    - .\models\Titanic_Classifier_random_forest\Titanic_Classifier_random_forest_model.pkl
+    - .\models\Titanic_Classifier_xgboost\Titanic_Classifier_xgboost_model.pkl
+    - .\src\training\evaluate.py
+    outs:
+    - .\reports\Titanic_Classifier_random_forest\evaluation_report.json
+    - .\reports\Titanic_Classifier_xgboost\evaluation_report.json
