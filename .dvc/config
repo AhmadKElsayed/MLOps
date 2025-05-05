@@ -2,3 +2,6 @@
     remote = localremote
 ['remote "localremote"']
     url = https://dagshub.com/ahmadkelsayed/MLOps
+['remote "origin"']
+    url = s3://dvc
+    endpointurl = https://dagshub.com/ahmadkelsayed/MLOps.s3
