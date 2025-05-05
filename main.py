@@ -17,7 +17,8 @@ def main(cfg: DictConfig) -> None:
     logger.info("Processing raw data")
     read_process_data(
         cfg=cfg.pipeline,
-        logger=logger
+        logger=logger,
+        drop_missing_threshold=0.3
     )
     
     # 2. Target encoding and train/test split
