@@ -33,8 +33,8 @@ stages:
       size: 37081
     - path: .\src\training\train.py
       hash: md5
-      md5: 90c035e7af84ee3379e046ca6f04f3d0
-      size: 6006
+      md5: 91bdfb63c8c3f1524e156f4ccf12421c
+      size: 6218
     outs:
     - path: .\models\Titanic_Classifier\label_encoder.pkl
       hash: md5
@@ -43,9 +43,9 @@ stages:
     - path: 
         .\models\Titanic_Classifier_random_forest\Titanic_Classifier_random_forest_model.pkl
       hash: md5
-      md5: a511e3ebd96b4605868dd78f53d7faff
-      size: 1421883
+      md5: cfc518ed69c9bbb28d50e014e2077beb
+      size: 1466788
     - path: .\models\Titanic_Classifier_xgboost\Titanic_Classifier_xgboost_model.pkl
       hash: md5
-      md5: ffa5953150b4aadfce1148240c0cd8d4
-      size: 106838
+      md5: 8efd3f993a4ddcfc94d198d4132eff78
+      size: 138116
