@@ -105,8 +105,8 @@ def objective(model_class, params: Dict[str, Any], X, y, n_folds: int = 5) -> Di
             "error": str(e)
         }
 
-def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logger) -> None:
-    """Train a single model using plain config dict"""
+def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logger, model_tag: str) -> None:
+    """Train a single model and save with specific tag (e.g., 'xgboost' or 'random_forest')"""
     trials = Trials()
 
     best = fmin(
@@ -117,6 +117,7 @@ def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logge
         trials=trials
     )
 
+    # Ensure correct types
     int_params = ['n_estimators', 'max_depth', 'min_samples_split']
     for param in int_params:
         if param in best:
@@ -125,13 +126,20 @@ def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logge
     final_model = model_class(**best)
     final_model.fit(X, y)
 
-    os.makedirs(os.path.join(cfg['model']['model_path'], cfg['model']['model_name']), exist_ok=True)
-    pickle.dump(final_model, open(os.path.join(cfg['model']['model_path'], cfg['model']['model_name'], f"{cfg['model']['model_name']}_model.pkl"), "wb"))
+    model_name = f"{cfg['model']['model_name']}_{model_tag}"
+    model_dir = os.path.join(cfg['model']['model_path'], model_name)
+    os.makedirs(model_dir, exist_ok=True)
+
+    model_path = os.path.join(model_dir, f"{model_name}_model.pkl")
+    with open(model_path, "wb") as f:
+        pickle.dump(final_model, f)
+
+    logger.info(f"{model_tag} model trained and saved at: {model_path}")
 
 def train_all_models(X, y, cfg: dict, logger: logging.Logger) -> None:
     """Train all models using plain config dict"""
-    train_model(X, y, cfg, XGBClassifier, SPACES["xgboost"], logger)
-    train_model(X, y, cfg, RandomForestClassifier, SPACES["random_forest"], logger)
+    train_model(X, y, cfg, XGBClassifier, SPACES["xgboost"], logger, model_tag="xgboost")
+    train_model(X, y, cfg, RandomForestClassifier, SPACES["random_forest"], logger, model_tag="random_forest")
 
 if __name__ == "__main__":
     cfg = dvc.api.params_show("../../params.yaml")

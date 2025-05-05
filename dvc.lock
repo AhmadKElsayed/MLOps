@@ -20,3 +20,32 @@ stages:
       hash: md5
       md5: 70321861ea314d7ef7d275fabef69b6c
       size: 37081
+  Train:
+    cmd: python ./src/training/train.py
+    deps:
+    - path: .\data\processed\Titanic-test.parquet
+      hash: md5
+      md5: e317aed3f7b82c6c5aaaed596b3ec699
+      size: 13761
+    - path: .\data\processed\Titanic-train.parquet
+      hash: md5
+      md5: 70321861ea314d7ef7d275fabef69b6c
+      size: 37081
+    - path: .\src\training\train.py
+      hash: md5
+      md5: 90c035e7af84ee3379e046ca6f04f3d0
+      size: 6006
+    outs:
+    - path: .\models\Titanic_Classifier\label_encoder.pkl
+      hash: md5
+      md5: 6af0b32d9e2a24ebcd4e2461e5ebd78b
+      size: 258
+    - path: 
+        .\models\Titanic_Classifier_random_forest\Titanic_Classifier_random_forest_model.pkl
+      hash: md5
+      md5: a511e3ebd96b4605868dd78f53d7faff
+      size: 1421883
+    - path: .\models\Titanic_Classifier_xgboost\Titanic_Classifier_xgboost_model.pkl
+      hash: md5
+      md5: ffa5953150b4aadfce1148240c0cd8d4
+      size: 106838
