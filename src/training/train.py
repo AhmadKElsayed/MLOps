@@ -4,6 +4,12 @@ import logging
 from functools import partial
 from typing import Any, Dict
 
+import mlflow
+import mlflow.sklearn
+
+import dagshub
+import dvc.api
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import cross_validate
@@ -18,6 +24,8 @@ from hyperopt.pyll import scope
 
 import dvc.api
 from logger import ExecutorLogger
+
+from src.training.model_wrapper import ModelWrapper
 
 logging.getLogger('hyperopt.tpe').setLevel(logging.WARNING)
 
@@ -105,8 +113,10 @@ def objective(model_class, params: Dict[str, Any], X, y, n_folds: int = 5) -> Di
             "error": str(e)
         }
 
+load_dotenv()
+
 def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logger) -> None:
-    """Train a single model using plain config dict"""
+    """Train a single model using config dict, autolog with MLflow, and register model"""
     trials = Trials()
 
     best = fmin(
@@ -122,24 +132,33 @@ def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logge
         if param in best:
             best[param] = int(best[param])
 
-    final_model = model_class(**best)
-    final_model.fit(X, y)
-
     model_type_name = model_class.__name__.lower()
     full_model_name = f"{cfg['model']['model_name']}_{model_type_name}"
 
     save_dir = os.path.join(cfg['model']['model_path'], full_model_name)
     os.makedirs(save_dir, exist_ok=True)
 
-    model_type_name = [key for key in SPACES if SPACES[key] == space][0]
-    full_model_name = f"{cfg['model']['model_name']}_{model_type_name}"
+    logger.info(f"Training {full_model_name} with best hyperparams: {best}")
 
-    save_dir = os.path.join(cfg['model']['model_path'], full_model_name)
-    os.makedirs(save_dir, exist_ok=True)
+    with mlflow.start_run(run_name=full_model_name):
+        # Enable autologging
+        mlflow.sklearn.autolog()
 
-    save_path = os.path.join(save_dir, f"{full_model_name}_model.pkl")
-    with open(save_path, "wb") as f:
-        pickle.dump(final_model, f)
+        final_model = model_class(**best)
+        final_model.fit(X, y)
+
+        logger.info(f"Model training completed. Logging and registering model: {full_model_name}")
+
+        # Register model
+        model_uri = f"runs:/{mlflow.active_run().info.run_id}/model"
+        result = mlflow.register_model(
+            model_uri=model_uri,
+            name=full_model_name
+        )
+        logger.info(f"Model registered: {result.name}, version {result.version}")
+
+        # Optional: log custom tag or notes if needed
+        mlflow.set_tag("model_type", model_type_name)
 
 def train_all_models(X, y, cfg: dict, logger: logging.Logger) -> None:
     """Train all models using plain config dict"""
@@ -149,6 +168,13 @@ def train_all_models(X, y, cfg: dict, logger: logging.Logger) -> None:
 if __name__ == "__main__":
     cfg = dvc.api.params_show("../../params.yaml")
     logger = ExecutorLogger("training")
+    
+    dagshub.auth.add_app_token(token=os.getenv("DAGSHUB_TOKEN"))
+    dagshub.init(
+        repo_owner=os.getenv("DAGSHUB_USERNAME"), 
+        repo_name=os.getenv("DAGSHUB_REPO"), 
+        mlflow=True
+    )
 
     logger.info("Encoding target column and features")
     X_train, y_train, X_test, y_test = encode_target_col(cfg, logger)
