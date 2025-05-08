@@ -72,7 +72,7 @@ stages:
   Evaluate:
     cmd: python ./src/training/evaluate.py
     deps:
-    - path: ./data/processed/Titanic-test.parquet
+    - path: .\data\processed\Titanic-test.parquet
       hash: md5
       md5: e317aed3f7b82c6c5aaaed596b3ec699
       size: 13761
@@ -96,9 +96,9 @@ stages:
     outs:
     - path: .\reports\Titanic_Classifier_random_forest\evaluation_report.json
       hash: md5
-      md5: f59f22e9dc4aeffea348c2a519f7543b
+      md5: 0b3d7c63c6e1d2b6c1a84e65de9adda8
       size: 1113
     - path: .\reports\Titanic_Classifier_xgboost\evaluation_report.json
       hash: md5
-      md5: ffe12aa8257cecbc2834eacd146e3c2c
-      size: 1109
+      md5: 24527da7b03227c8f60d06216a18500a
+      size: 1108
