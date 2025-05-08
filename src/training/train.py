@@ -25,7 +25,9 @@ from hyperopt.pyll import scope
 import dvc.api
 from logger import ExecutorLogger
 
-from src.training.model_wrapper import ModelWrapper
+from dotenv import load_dotenv
+
+from model_wrapper import ModelWrapper
 
 logging.getLogger('hyperopt.tpe').setLevel(logging.WARNING)
 
