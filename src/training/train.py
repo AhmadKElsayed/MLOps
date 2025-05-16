@@ -35,13 +35,13 @@ logging.getLogger('hyperopt.tpe').setLevel(logging.WARNING)
 # Hyperopt search spaces
 SPACES = {
     "xgboost": {
-        "n_estimators": scope.int(hp.quniform("n_estimators", 50, 200, 1)),
-        "max_depth": scope.int(hp.quniform("max_depth", 3, 10, 1)),
+        "n_estimators": scope.int(hp.quniform("n_estimators", 50, 100, 10)),
+        "max_depth": scope.int(hp.quniform("max_depth", 3, 8, 1)),
         "learning_rate": hp.uniform("learning_rate", 0.01, 0.3),
         "random_state": 42,
     },
     "random_forest": {
-        "n_estimators": scope.int(hp.quniform("n_estimators", 50, 200, 1)),
+        "n_estimators": scope.int(hp.quniform("n_estimators", 50, 100, 10)),
         "max_depth": scope.int(hp.quniform("max_depth", 3, 20, 1)),
         "min_samples_split": scope.int(hp.quniform("min_samples_split", 2, 10, 1)),
         "random_state": 42,
@@ -157,7 +157,7 @@ def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logge
 
     with mlflow.start_run(run_name=full_model_name):
         # Enable autologging
-        mlflow.sklearn.autolog()
+        mlflow.sklearn.autolog(silent = True)
 
         # Create final model
         final_model = model_class(**best)

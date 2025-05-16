@@ -16,18 +16,19 @@ stages:
     outs:
     - .\models\Titanic_Classifier\label_encoder.pkl
     - .\models\Titanic_Classifier\preprocessors.pkl
-    - .\models\Titanic_Classifier_random_forest\Titanic_Classifier_random_forest_model.pkl
-    - .\models\Titanic_Classifier_random_forest\Titanic_Classifier_random_forest_pipeline.pkl
-    - .\models\Titanic_Classifier_xgboost\Titanic_Classifier_xgboost_model.pkl
-    - .\models\Titanic_Classifier_xgboost\Titanic_Classifier_xgboost_pipeline.pkl
+    - .\models\Titanic_Classifier_randomforestclassifier\Titanic_Classifier_randomforestclassifier_model.pkl
+    - .\models/Titanic_Classifier_randomforestclassifier/Titanic_Classifier_randomforestclassifier_pipeline.pkl
+    - .\models\Titanic_Classifier_xgbclassifier\Titanic_Classifier_xgbclassifier_model.pkl
+    - .\models\Titanic_Classifier_xgbclassifier\Titanic_Classifier_xgbclassifier_pipeline.pkl
   Evaluate:
     cmd: python ./src/training/evaluate.py
     deps:
     - .\data\processed\titanic-test.parquet
     - .\models\Titanic_Classifier\label_encoder.pkl
-    - .\models\Titanic_Classifier_random_forest\Titanic_Classifier_random_forest_pipeline.pkl
-    - .\models\Titanic_Classifier_xgboost\Titanic_Classifier_xgboost_pipeline.pkl
+    - .\models/Titanic_Classifier_randomforestclassifier/Titanic_Classifier_randomforestclassifier_pipeline.pkl
+    - .\models\Titanic_Classifier_xgbclassifier\Titanic_Classifier_xgbclassifier_pipeline.pkl
     - .\src\training\evaluate.py
+    
     outs:
     - .\reports\Titanic_Classifier_random_forest\evaluation_report.json
     - .\reports\Titanic_Classifier_xgboost\evaluation_report.json
