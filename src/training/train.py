@@ -74,8 +74,8 @@ def encode_target_col(cfg: dict, logger: logging.Logger):
 
     all_categories = pd.concat([train_df[cfg['data']['target_column']], test_df[cfg['data']['target_column']]]).unique()
     target_encoder.fit(all_categories)
-    y_train = target_encoder.transform(train_df[cfg['data']['target_column']]).values ##########
-    y_test = target_encoder.transform(test_df[cfg['data']['target_column']]).values #######
+    y_train = target_encoder.transform(train_df[cfg['data']['target_column']])
+    y_test = target_encoder.transform(test_df[cfg['data']['target_column']])
 
     os.makedirs(os.path.join(cfg['model']['model_path'], cfg['model']['model_name']), exist_ok=True)
     with open(os.path.join(cfg['model']['model_path'], cfg['model']['model_name'], "preprocessors.pkl"), "wb") as f:
@@ -96,10 +96,12 @@ def objective(model_class, params: Dict[str, Any], X, y, n_folds: int = 5) -> Di
     """Objective function for hyperopt"""
     try:
         model = model_class(**params)
+        # Convert Series to NumPy array
+        y_array = y.to_numpy() if hasattr(y, 'to_numpy') else y
         scores = cross_validate(
             model,
             X,
-            y,
+            y_array,
             cv=n_folds,
             scoring="accuracy",
             error_score='raise'
