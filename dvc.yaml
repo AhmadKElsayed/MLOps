@@ -15,6 +15,8 @@ stages:
     - .\src\training\train.py
     outs:
     - .\models\Titanic_Classifier\label_encoder.pkl
+    - .\models\Titanic_Classifier\feature_preprocessor.pkl
+    - .\models\Titanic_Classifier\preprocessor.pkl
     - .\models\Titanic_Classifier\preprocessors.pkl
     - .\models\Titanic_Classifier_randomforestclassifier\Titanic_Classifier_randomforestclassifier_model.pkl
     - .\models/Titanic_Classifier_randomforestclassifier/Titanic_Classifier_randomforestclassifier_pipeline.pkl

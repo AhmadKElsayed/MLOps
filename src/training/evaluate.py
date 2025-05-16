@@ -94,6 +94,6 @@ if __name__ == "__main__":
 
     cfg = dvc.api.params_show("../../params.yaml")
     logger = ExecutorLogger("evaluation")
-
+    setup_dagshub(cfg = cfg)
     logger.info("Starting evaluation for all pipelines")
     evaluate_models(cfg, logger)
