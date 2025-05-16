@@ -1,0 +1,35 @@
+{
+    "model_name": "Titanic_Classifier_randomforestclassifier",
+    "accuracy": 0.7686567164179104,
+    "precision": 0.7768236025753585,
+    "recall": 0.7686567164179104,
+    "f1": 0.7540574561254295,
+    "prediction_time_sec": 0.018304824829101562,
+    "classification_report": {
+        "0": {
+            "precision": 0.7549019607843137,
+            "recall": 0.927710843373494,
+            "f1-score": 0.8324324324324325,
+            "support": 83.0
+        },
+        "1": {
+            "precision": 0.8125,
+            "recall": 0.5098039215686274,
+            "f1-score": 0.6265060240963856,
+            "support": 51.0
+        },
+        "accuracy": 0.7686567164179104,
+        "macro avg": {
+            "precision": 0.7837009803921569,
+            "recall": 0.7187573824710607,
+            "f1-score": 0.7294692282644091,
+            "support": 134.0
+        },
+        "weighted avg": {
+            "precision": 0.7768236025753585,
+            "recall": 0.7686567164179104,
+            "f1-score": 0.7540574561254295,
+            "support": 134.0
+        }
+    }
+}
