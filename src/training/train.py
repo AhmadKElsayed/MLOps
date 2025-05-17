@@ -18,6 +18,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
 
 from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
 from hyperopt.pyll import scope
@@ -34,13 +35,13 @@ logging.getLogger('hyperopt.tpe').setLevel(logging.WARNING)
 # Hyperopt search spaces
 SPACES = {
     "xgboost": {
-        "n_estimators": scope.int(hp.quniform("n_estimators", 50, 200, 1)),
-        "max_depth": scope.int(hp.quniform("max_depth", 3, 10, 1)),
+        "n_estimators": scope.int(hp.quniform("n_estimators", 50, 100, 10)),
+        "max_depth": scope.int(hp.quniform("max_depth", 3, 8, 1)),
         "learning_rate": hp.uniform("learning_rate", 0.01, 0.3),
         "random_state": 42,
     },
     "random_forest": {
-        "n_estimators": scope.int(hp.quniform("n_estimators", 50, 200, 1)),
+        "n_estimators": scope.int(hp.quniform("n_estimators", 50, 100, 10)),
         "max_depth": scope.int(hp.quniform("max_depth", 3, 20, 1)),
         "min_samples_split": scope.int(hp.quniform("min_samples_split", 2, 10, 1)),
         "random_state": 42,
@@ -85,17 +86,22 @@ def encode_target_col(cfg: dict, logger: logging.Logger):
         
     with open(os.path.join(cfg['model']['model_path'], cfg['model']['model_name'], "label_encoder.pkl"), "wb") as f:
         pickle.dump(target_encoder, f)
-        
+    
+    
+    with open(os.path.join(cfg['model']['model_path'], cfg['model']['model_name'], "preprocessor.pkl"), "wb") as f:
+        pickle.dump(preprocessor, f)
     return X_train, pd.Series(y_train), X_test, pd.Series(y_test)
 
 def objective(model_class, params: Dict[str, Any], X, y, n_folds: int = 5) -> Dict[str, Any]:
     """Objective function for hyperopt"""
     try:
         model = model_class(**params)
+        # Convert Series to NumPy array
+        y_array = y.to_numpy() if hasattr(y, 'to_numpy') else y
         scores = cross_validate(
             model,
             X,
-            y,
+            y_array,
             cv=n_folds,
             scoring="accuracy",
             error_score='raise'
@@ -116,6 +122,7 @@ def objective(model_class, params: Dict[str, Any], X, y, n_folds: int = 5) -> Di
         }
 
 load_dotenv()
+
 
 def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logger) -> None:
     """Train a single model using config dict, autolog with MLflow, and register model"""
@@ -139,16 +146,49 @@ def train_model(X, y, cfg: dict, model_class, space: dict, logger: logging.Logge
 
     save_dir = os.path.join(cfg['model']['model_path'], full_model_name)
     os.makedirs(save_dir, exist_ok=True)
-
+    
+    # Load the preprocessors
+    with open(os.path.join(cfg['model']['model_path'], cfg['model']['model_name'], "preprocessors.pkl"), "rb") as f:
+        preprocessors = pickle.load(f)
+    
+    feature_preprocessor = preprocessors['feature_preprocessor']
+    
     logger.info(f"Training {full_model_name} with best hyperparams: {best}")
 
     with mlflow.start_run(run_name=full_model_name):
         # Enable autologging
-        mlflow.sklearn.autolog()
+        mlflow.sklearn.autolog(silent = True)
 
+        # Create final model
         final_model = model_class(**best)
-        final_model.fit(X, y)
-
+        
+        # Create pipeline with preprocessing and model
+        pipeline = Pipeline([
+            ('preprocessor', feature_preprocessor),
+            ('model', final_model)
+        ])
+        
+        # Fit the pipeline using the original data (not preprocessed X)
+        train_df = pd.read_parquet(os.path.join(cfg['data']['processed_data_path'], f"{cfg['data']['file_name']}-train.parquet"))
+        
+        # Get the target_encoder
+        target_encoder = preprocessors['target_encoder']
+        y_encoded = target_encoder.transform(train_df[cfg['data']['target_column']])
+        
+        # Fit pipeline on raw data
+        pipeline.fit(train_df.drop(cfg['data']['target_column'], axis=1), y_encoded)
+        
+        # Save the full pipeline
+        pipeline_path = os.path.join(save_dir, f"{full_model_name}_pipeline.pkl")
+        with open(pipeline_path, "wb") as f:
+            pickle.dump(pipeline, f)
+        logger.info(f"Full pipeline saved to {pipeline_path}")
+        
+        # Save the individual model too
+        model_path = os.path.join(save_dir, f"{full_model_name}_model.pkl")
+        with open(model_path, "wb") as f:
+            pickle.dump(final_model, f)
+        
         logger.info(f"Model training completed. Logging and registering model: {full_model_name}")
 
         # Register model
