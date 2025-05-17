@@ -42,7 +42,7 @@ SPACES = {
     },
     "random_forest": {
         "n_estimators": scope.int(hp.quniform("n_estimators", 50, 100, 10)),
-        "max_depth": scope.int(hp.quniform("max_depth", 3, 20, 1)),
+        "max_depth": scope.int(hp.quniform("max_depth", 3, 10, 1)),
         "min_samples_split": scope.int(hp.quniform("min_samples_split", 2, 10, 1)),
         "random_state": 42,
     }
