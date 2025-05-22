@@ -25,8 +25,8 @@ model:
         n_estimators:
           name: n_estimators
           type: int
-          min: 50
-          max: 200
+          min: 80
+          max: 100
           step: 1
         max_depth:
           name: max_depth
@@ -38,7 +38,7 @@ model:
           name: learning_rate
           type: float
           min: 0.01
-          max: 0.3
+          max: 0.2
         gamma:
           name: gamma
           type: float
@@ -48,12 +48,12 @@ model:
           name: subsample
           type: float
           min: 0.6
-          max: 1.0
+          max: 0.8
         colsample_bytree:
           name: colsample_bytree
           type: float
           min: 0.6
-          max: 1.0
+          max: 0.8
 
       # Random Forest parameters
       random_forest:
@@ -61,19 +61,19 @@ model:
           name: n_estimators
           type: int
           min: 50
-          max: 200
+          max: 100
           step: 1
         max_depth:
           name: max_depth
           type: int
           min: 3
-          max: 20
+          max: 10
           step: 1
         min_samples_split:
           name: min_samples_split
           type: int
           min: 2
-          max: 10
+          max: 8
           step: 1
         min_samples_leaf:
           name: min_samples_leaf
