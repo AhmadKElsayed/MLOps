@@ -9,28 +9,18 @@ from src.deployment.requests import InferenceRequest
 
 
 class InferenceAPI(ls.LitAPI):
-    def __init__(self, cfg):
-        self.cfg = cfg
-        self.max_batch_size = 1
-        self.enable_async = False
-        self.batch_timeout = 0.1
-        print(cfg)
-
     def setup(self, device="cpu"):
         with open(
-            os.path.join(
-                self.cfg["paths"]["models_parent_dir"],
-                self.cfg["names"]["model_name"],
-                f"{self.cfg['names']['model_name']}.pkl",
-            ),
+            os.path.join("models\Titanic_Classifier_xgbclassifier\Titanic_Classifier_xgbclassifier_pipeline.pkl"),
             "rb",
         ) as pkl:
             self._model = pickle.load(pkl)
 
+
     def decode_request(self, request):
         try:
-            columns = request["dataframe_split"]["columns"]
-            rows = request["dataframe_split"]["data"]
+            columns = request["columns"]
+            rows = request["data"]
             inference_requests = []
 
             for row in rows:

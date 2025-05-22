@@ -18,7 +18,7 @@ def main(cfg: DictConfig) -> None:
     read_process_data(
         cfg=cfg.pipeline,
         logger=logger,
-        drop_missing_threshold=0.3
+        drop_missing_threshold=1
     )
     
     # 2. Target encoding and train/test split
